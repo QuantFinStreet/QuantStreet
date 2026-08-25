@@ -13,11 +13,11 @@ describe('routeForQuery', () => {
     expect(routeForQuery(queryType).provider).toBe(provider);
   });
 
-  it('routes loan queries to a GPT-4 model', () => {
-    expect(routeForQuery('loan').model).toBe('gpt-4');
+  it('routes loan queries to a GPT-4-class model', () => {
+    expect(routeForQuery('loan').model).toBe('gpt-4o');
   });
 
-  it('routes general queries to Gemini Flash', () => {
-    expect(routeForQuery('general').model).toBe('gemini-1.5-flash');
+  it('routes general queries to a Gemini Flash model', () => {
+    expect(routeForQuery('general').model).toBe('gemini-3.6-flash');
   });
 });

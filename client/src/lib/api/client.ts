@@ -32,6 +32,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     );
   }
 
+  // DELETE (and any other 204) has no body — parsing it as JSON would throw.
+  if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
 
@@ -41,4 +43,12 @@ export function apiGet<T>(path: string): Promise<T> {
 
 export function apiPost<T>(path: string, body: unknown): Promise<T> {
   return request<T>(path, { method: 'POST', body: JSON.stringify(body) });
+}
+
+export function apiPatch<T>(path: string, body: unknown): Promise<T> {
+  return request<T>(path, { method: 'PATCH', body: JSON.stringify(body) });
+}
+
+export function apiDelete<T = void>(path: string): Promise<T> {
+  return request<T>(path, { method: 'DELETE' });
 }

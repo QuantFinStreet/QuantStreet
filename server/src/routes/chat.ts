@@ -72,7 +72,7 @@ export function openAIChatRouter(): Router {
       const { message, model } = req.body;
       let text: string;
       try {
-        text = await callProvider({ provider: 'openai', model: model ?? 'gpt-4' }, message);
+        text = await callProvider({ provider: 'openai', model: model ?? 'gpt-4o' }, message);
       } catch (err) {
         throw toApiError(err);
       }

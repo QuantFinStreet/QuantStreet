@@ -1,4 +1,9 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
+
+// override: true — .env is the source of truth for local dev. Without this,
+// dotenv silently keeps whatever is already in process.env, which can shadow
+// a real key in .env with a stale/placeholder value set at the OS/shell level.
+config({ override: true });
 
 function optional(name: string, fallback: string): string {
   return process.env[name] ?? fallback;
