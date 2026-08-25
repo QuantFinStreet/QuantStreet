@@ -1,0 +1,21 @@
+{
+  "name": "fintech-project",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "predev": "npm run build --workspace=shared",
+    "dev": "concurrently -n server,client -c blue,green \"npm:dev --workspace=server\" \"npm:dev --workspace=client\"",
+    "build": "npm run build --workspace=shared && npm run build --workspace=server && npm run build --workspace=client",
+    "typecheck": "npm run typecheck --workspace=shared && npm run typecheck --workspace=server && npm run typecheck --workspace=client",
+    "lint": "npm run lint --workspace=server && npm run lint --workspace=client"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
