@@ -70,6 +70,25 @@ const CreditTooltip = ({ active, payload, label }: any) => {
   );
 };
 
+const LiquidPieDefs = ({ alloc }: { alloc: ReturnType<typeof calculatePortfolioAllocation> }) => (
+  <defs>
+    {alloc.map((a) => (
+      <radialGradient key={a.name} id={`liquid-${a.name.replace(/\s+/g, '')}`} cx="35%" cy="30%" r="75%">
+        <stop offset="0%" stopColor="#ffffff" stopOpacity={0.85} />
+        <stop offset="18%" stopColor={a.color} stopOpacity={0.95} />
+        <stop offset="100%" stopColor={a.color} stopOpacity={1} />
+      </radialGradient>
+    ))}
+    <filter id="liquidGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+);
+
 const PieLegend = ({ alloc }: { alloc: ReturnType<typeof calculatePortfolioAllocation> }) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
     {alloc.map((a) => (
@@ -192,31 +211,117 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </SectionCard>
 
-        {/* Asset Allocation Donut */}
+        {/* Asset Allocation — Liquid Glass Donut */}
         <SectionCard title="Asset Allocation" subtitle="By category" style={{ animationDelay: '0.25s' }}>
-          <ResponsiveContainer width="100%" height={180}>
-            <PieChart>
-              <Pie
-                data={allocation}
-                cx="50%"
-                cy="50%"
-                innerRadius={52}
-                outerRadius={80}
-                paddingAngle={3}
-                dataKey="value"
+          <div
+            style={{
+              position: 'relative',
+              borderRadius: 20,
+              overflow: 'hidden',
+              background: 'linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01))',
+              border: '1px solid var(--border-subtle)',
+              padding: '0.5rem 0 0',
+            }}
+          >
+            {/* floating liquid blobs */}
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                top: -30,
+                left: -20,
+                width: 140,
+                height: 140,
+                borderRadius: '50%',
+                background: `radial-gradient(circle, ${allocation[0]?.color ?? '#7C3AED'}55, transparent 70%)`,
+                filter: 'blur(18px)',
+                animation: 'liquidFloat 7s ease-in-out infinite',
+                pointerEvents: 'none',
+              }}
+            />
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                bottom: -35,
+                right: -25,
+                width: 160,
+                height: 160,
+                borderRadius: '50%',
+                background: `radial-gradient(circle, ${allocation[1]?.color ?? '#10B981'}45, transparent 70%)`,
+                filter: 'blur(22px)',
+                animation: 'liquidFloat 9s ease-in-out infinite reverse',
+                pointerEvents: 'none',
+              }}
+            />
+
+            <div style={{ position: 'relative' }}>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <LiquidPieDefs alloc={allocation} />
+                  <Pie
+                    data={allocation}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={54}
+                    outerRadius={84}
+                    paddingAngle={4}
+                    cornerRadius={10}
+                    dataKey="value"
+                    filter="url(#liquidGlow)"
+                    isAnimationActive
+                    animationDuration={900}
+                    animationEasing="ease-out"
+                  >
+                    {allocation.map((entry) => (
+                      <Cell
+                        key={entry.name}
+                        fill={`url(#liquid-${entry.name.replace(/\s+/g, '')})`}
+                        stroke="rgba(255,255,255,0.5)"
+                        strokeWidth={1.5}
+                        style={{ filter: `drop-shadow(0 4px 10px ${entry.color}66)` }}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(val: unknown) => [formatINR(val as number, true), '']}
+                    contentStyle={{
+                      background: 'rgba(255,255,255,0.85)',
+                      backdropFilter: 'blur(10px)',
+                      WebkitBackdropFilter: 'blur(10px)',
+                      border: '1px solid var(--border-medium)',
+                      borderRadius: 10,
+                      fontSize: 12,
+                    }}
+                    itemStyle={{ color: 'var(--text-primary)' }}
+                    labelStyle={{ color: 'var(--text-muted)' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+
+              {/* center glass readout */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -55%)',
+                  textAlign: 'center',
+                  pointerEvents: 'none',
+                }}
               >
-                {allocation.map((entry) => (
-                  <Cell key={entry.name} fill={entry.color} stroke="var(--bg-surface)" strokeWidth={2} />
-                ))}
-              </Pie>
-              <Tooltip
-                formatter={(val: unknown) => [formatINR(val as number, true), '']}
-                contentStyle={{ background: 'rgba(255,255,255,0.92)', border: '1px solid var(--border-medium)', borderRadius: 8, fontSize: 12 }}
-                itemStyle={{ color: 'var(--text-primary)' }}
-                labelStyle={{ color: 'var(--text-muted)' }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', letterSpacing: '0.02em' }}>
+                  Total
+                </div>
+                <div
+                  className="numeric"
+                  style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)' }}
+                >
+                  {formatINR(assets, true)}
+                </div>
+              </div>
+            </div>
+          </div>
           <PieLegend alloc={allocation} />
         </SectionCard>
       </div>
