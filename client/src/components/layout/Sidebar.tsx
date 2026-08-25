@@ -5,6 +5,7 @@ import {
   TrendingUp,
   Calculator,
   MessageSquareText,
+  Settings as SettingsIcon,
   Sparkles,
   Sun,
   Moon,
@@ -16,6 +17,7 @@ const NAV_ITEMS = [
   { to: '/investments', icon: TrendingUp,          label: 'Investments' },
   { to: '/loans',       icon: Calculator,          label: 'Loan Calc' },
   { to: '/chat',        icon: MessageSquareText,   label: 'AI Chat' },
+  { to: '/settings',    icon: SettingsIcon,        label: 'Settings' },
 ];
 
 export default function Sidebar() {

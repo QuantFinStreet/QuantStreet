@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import InvestmentAnalysis from './pages/InvestmentAnalysis';
 import LoanCalculator from './pages/LoanCalculator';
 import AIChat from './pages/AIChat';
+import Settings from './pages/Settings';
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
               <Route path="investments" element={<InvestmentAnalysis />} />
               <Route path="loans" element={<LoanCalculator />} />
               <Route path="chat" element={<AIChat />} />
+              <Route path="settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>

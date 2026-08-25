@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd .. && npm run build --workspace=shared && npm run build --workspace=client",
+  "outputDirectory": "dist",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}

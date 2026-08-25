@@ -10,6 +10,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/investments': 'Investment Analysis',
   '/loans':       'Loan Calculator',
   '/chat':        'AI Chat',
+  '/settings':    'Settings',
 };
 
 function CenteredState({ children }: { children: React.ReactNode }) {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, TrendingUp, Calculator, MessageSquareText, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, Calculator, MessageSquareText, Settings as SettingsIcon, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
 const NAV_ITEMS = [
@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { to: '/investments', icon: TrendingUp,        label: 'Invest' },
   { to: '/loans',       icon: Calculator,        label: 'Loans' },
   { to: '/chat',        icon: MessageSquareText, label: 'AI Chat' },
+  { to: '/settings',    icon: SettingsIcon,      label: 'Settings' },
 ];
 
 export default function BottomNav() {
