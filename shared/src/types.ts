@@ -30,6 +30,11 @@ export interface Liability {
   startDate: string;
 }
 
+// Payload shapes for creating/editing assets & liabilities — same fields,
+// minus the server-assigned id.
+export type AssetInput = Omit<Asset, 'id'>;
+export type LiabilityInput = Omit<Liability, 'id'>;
+
 // ─── Net Worth & Credit ──────────────────────────────────────────────────────
 export interface NetWorthSnapshot {
   month: string;   // "Jan 24"

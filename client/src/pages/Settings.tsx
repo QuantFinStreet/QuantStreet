@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
-import { FileJson, FileSpreadsheet, FileText, Download, Loader2 } from 'lucide-react';
+import { FileJson, FileSpreadsheet, FileText, Download, Loader2, Wallet } from 'lucide-react';
 import { exportProfile } from '../lib/api/settings';
 import { ApiRequestError } from '../lib/api/client';
 import { useFinancialData } from '../data/DataContext';
+import { calculateNetWorth, formatINR } from '../lib/financial';
 import type { ExportFormat } from '@fintech/shared';
 import SectionCard from '../components/ui/SectionCard';
+import AssetsManager from '../components/settings/AssetsManager';
+import LiabilitiesManager from '../components/settings/LiabilitiesManager';
 
 const EXPORT_OPTIONS: { format: ExportFormat; label: string; description: string; icon: React.ReactNode; extension: string; mime: string }[] = [
   { format: 'json', label: 'JSON', description: 'Full profile as structured data', icon: <FileJson size={20} />, extension: 'json', mime: 'application/json' },
@@ -27,6 +30,7 @@ function downloadBlob(blob: Blob, filename: string) {
 export default function Settings() {
   const { profile } = useFinancialData();
   const [pendingFormat, setPendingFormat] = useState<ExportFormat | null>(null);
+  const { total: netWorth } = calculateNetWorth(profile);
 
   const handleExport = async (option: (typeof EXPORT_OPTIONS)[number]) => {
     setPendingFormat(option.format);
@@ -50,8 +54,39 @@ export default function Settings() {
           Settings
         </h1>
         <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-          Export your financial data
+          Manage your holdings and export your financial data
         </p>
+      </div>
+
+      <div
+        className="card animate-fade-in"
+        style={{ padding: '1.25rem 1.5rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}
+      >
+        <div
+          style={{
+            width: 40, height: 40, borderRadius: 12,
+            background: 'linear-gradient(135deg, var(--accent-gold-muted), var(--accent-gold))',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}
+        >
+          <Wallet size={18} color="#fff" />
+        </div>
+        <div>
+          <p style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '0.2rem' }}>
+            Current Net Worth
+          </p>
+          <p className="numeric" style={{ fontSize: '1.4rem', fontWeight: 600, color: netWorth >= 0 ? 'var(--success)' : 'var(--danger)', lineHeight: 1 }}>
+            {formatINR(netWorth, true)}
+          </p>
+        </div>
+        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginLeft: 'auto', maxWidth: 280, textAlign: 'right' }}>
+          Calculated from your assets and liabilities below — edit either to update it.
+        </p>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '1.5rem' }}>
+        <AssetsManager />
+        <LiabilitiesManager />
       </div>
 
       <SectionCard title="Export profile" subtitle={`${profile.name}'s full financial profile, generated fresh from the server`}>

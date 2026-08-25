@@ -1,12 +1,15 @@
+import { randomUUID } from 'node:crypto';
 import type {
   FinancialProfile,
   Asset,
+  AssetInput,
   Liability,
+  LiabilityInput,
   NetWorthSnapshot,
   CreditScoreEntry,
   SIPHolding,
 } from '../types/index.js';
-import type { FinancialProfileRepository } from './financialProfileRepository.js';
+import { RepositoryNotFoundError, type FinancialProfileRepository } from './financialProfileRepository.js';
 
 // ─── Assets ──────────────────────────────────────────────────────────────────
 const assets: Asset[] = [
@@ -227,7 +230,7 @@ const sipHoldings: SIPHolding[] = [
 ];
 
 // ─── Financial Profile ────────────────────────────────────────────────────────
-const mockFinancialProfile: FinancialProfile = {
+const seedProfile: FinancialProfile = {
   id: 'fp_001',
   name: 'Arjun Sharma',
   age: 32,
@@ -243,8 +246,62 @@ const mockFinancialProfile: FinancialProfile = {
 };
 
 // ─── Repository ────────────────────────────────────────────────────────────────
+// In-memory and per-instance: each instance gets its own deep copy of the
+// seed data so edits don't leak across instances (e.g. in tests) and don't
+// mutate the shared seed constant. State resets on server restart — a real
+// backing store (e.g. Fi's MCP server) would persist it instead.
 export class MockFinancialProfileRepository implements FinancialProfileRepository {
+  private profile: FinancialProfile = structuredClone(seedProfile);
+
   async getProfile(): Promise<FinancialProfile> {
-    return mockFinancialProfile;
+    return this.profile;
+  }
+
+  async addAsset(input: AssetInput): Promise<Asset> {
+    const asset: Asset = { id: randomUUID(), ...input };
+    this.profile.assets.push(asset);
+    this.touch();
+    return asset;
+  }
+
+  async updateAsset(id: string, updates: Partial<AssetInput>): Promise<Asset> {
+    const asset = this.profile.assets.find((a) => a.id === id);
+    if (!asset) throw new RepositoryNotFoundError(`Asset ${id} not found.`);
+    Object.assign(asset, updates);
+    this.touch();
+    return asset;
+  }
+
+  async deleteAsset(id: string): Promise<void> {
+    const index = this.profile.assets.findIndex((a) => a.id === id);
+    if (index === -1) throw new RepositoryNotFoundError(`Asset ${id} not found.`);
+    this.profile.assets.splice(index, 1);
+    this.touch();
+  }
+
+  async addLiability(input: LiabilityInput): Promise<Liability> {
+    const liability: Liability = { id: randomUUID(), ...input };
+    this.profile.liabilities.push(liability);
+    this.touch();
+    return liability;
+  }
+
+  async updateLiability(id: string, updates: Partial<LiabilityInput>): Promise<Liability> {
+    const liability = this.profile.liabilities.find((l) => l.id === id);
+    if (!liability) throw new RepositoryNotFoundError(`Liability ${id} not found.`);
+    Object.assign(liability, updates);
+    this.touch();
+    return liability;
+  }
+
+  async deleteLiability(id: string): Promise<void> {
+    const index = this.profile.liabilities.findIndex((l) => l.id === id);
+    if (index === -1) throw new RepositoryNotFoundError(`Liability ${id} not found.`);
+    this.profile.liabilities.splice(index, 1);
+    this.touch();
+  }
+
+  private touch() {
+    this.profile.lastUpdated = new Date().toISOString();
   }
 }

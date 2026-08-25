@@ -48,3 +48,25 @@ export function validateQuery<T>(schema: ZodType<T>) {
     next();
   };
 }
+
+// Guards route params like :id — with noUncheckedIndexedAccess, req.params
+// values are typed `string | undefined` even though Express only calls the
+// handler when the param matched. This turns "present but maybe empty"
+// into a proper 400 instead of an unchecked access further down.
+export function validateParams<T>(schema: ZodType<T>) {
+  return (req: Request, _res: Response, next: NextFunction) => {
+    const result = schema.safeParse(req.params);
+    if (!result.success) {
+      next(
+        new ApiError(
+          400,
+          'validation_error',
+          'Route parameters failed validation.',
+          formatIssues(result.error.issues)
+        )
+      );
+      return;
+    }
+    next();
+  };
+}

@@ -16,6 +16,22 @@ export class ProviderCallError extends Error {
   }
 }
 
+// A slow/hanging model (observed in testing — some Gemini models take 50s+
+// or never resolve) shouldn't leave the client's request open indefinitely.
+const PROVIDER_TIMEOUT_MS = 30_000;
+
+function withTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${PROVIDER_TIMEOUT_MS}ms`));
+    }, PROVIDER_TIMEOUT_MS);
+    promise.then(
+      (value) => { clearTimeout(timer); resolve(value); },
+      (err) => { clearTimeout(timer); reject(err); }
+    );
+  });
+}
+
 let openaiClient: OpenAI | null = null;
 function getOpenAIClient(): OpenAI {
   if (!env.openaiApiKey) {
@@ -37,12 +53,15 @@ function getGeminiClient(): GoogleGenerativeAI {
 async function callOpenAI(model: string, prompt: string): Promise<string> {
   const client = getOpenAIClient();
   try {
-    const completion = await client.chat.completions.create({
-      model,
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.4,
-      max_tokens: 300,
-    });
+    const completion = await withTimeout(
+      client.chat.completions.create({
+        model,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.4,
+        max_tokens: 300,
+      }),
+      'OpenAI request'
+    );
     const text = completion.choices[0]?.message?.content;
     if (!text) throw new Error('Empty response from OpenAI');
     return text.trim();
@@ -57,7 +76,7 @@ async function callGemini(model: string, prompt: string): Promise<string> {
   const client = getGeminiClient();
   try {
     const genModel = client.getGenerativeModel({ model });
-    const result = await genModel.generateContent(prompt);
+    const result = await withTimeout(genModel.generateContent(prompt), 'Gemini request');
     const text = result.response.text();
     if (!text) throw new Error('Empty response from Gemini');
     return text.trim();
